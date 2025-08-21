@@ -1,20 +1,17 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import util from "util";
-import User from "../Model/User";
-
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const util = require("util");
+const User = require("../Model/User");
 
 const promisify = util.promisify;
 const promisifiedJWTsign = promisify(jwt.sign);
 
 const { JWT_SECRET_KEY } = process.env;
 
-
-export const signupHandler = async (req, res) => {
+const signupHandler = async (req, res) => {
   try {
     const { name, email, address, password } = req.body;
 
-    
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
@@ -23,13 +20,11 @@ export const signupHandler = async (req, res) => {
       });
     }
 
-   
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists with this email" });
     }
 
-   
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
@@ -48,8 +43,7 @@ export const signupHandler = async (req, res) => {
   }
 };
 
-
-export const loginHandler = async (req, res) => {
+const loginHandler = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -60,10 +54,13 @@ export const loginHandler = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     // JWT token
-    const authToken = await promisifiedJWTsign({ id: user._id, role: user.role }, JWT_SECRET_KEY);
+    const authToken = await promisifiedJWTsign(
+      { id: user._id, role: user.role },
+      JWT_SECRET_KEY
+    );
 
     res.cookie("jwt", authToken, {
-      maxAge: 1000 * 60 * 60 * 24, 
+      maxAge: 1000 * 60 * 60 * 24,
       secure: true,
       httpOnly: true,
       sameSite: "none",
@@ -80,8 +77,7 @@ export const loginHandler = async (req, res) => {
   }
 };
 
-
-export const changePassword = async (req, res) => {
+const changePassword = async (req, res) => {
   try {
     const { email, oldPassword, newPassword } = req.body;
 
@@ -91,7 +87,6 @@ export const changePassword = async (req, res) => {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ message: "Old password is incorrect" });
 
-    
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -108,3 +103,5 @@ export const changePassword = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+module.exports = { signupHandler, loginHandler, changePassword };

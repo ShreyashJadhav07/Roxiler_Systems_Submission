@@ -1,10 +1,8 @@
-import jwt from "jsonwebtoken";
-import User from "../Model/User";
+const jwt = require("jsonwebtoken");
+const User = require("../Model/User");
 
-
-export const authMiddleware = async (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
-  
     let token = req.cookies?.jwt || req.headers["authorization"]?.split(" ")[1];
 
     if (!token) {
@@ -13,7 +11,6 @@ export const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    
     req.user = await User.findById(decoded.id).select("-password");
 
     if (!req.user) {
@@ -26,3 +23,5 @@ export const authMiddleware = async (req, res, next) => {
     res.status(401).json({ message: "Token verification failed" });
   }
 };
+
+module.exports = authMiddleware;
