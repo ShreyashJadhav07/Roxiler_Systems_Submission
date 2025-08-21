@@ -84,3 +84,51 @@ export const getDashboard= async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 }
+
+export const listUsers=async (req,res) =>{
+    try{
+        const {name,email,address,role,sortBy="name",order="asc"}=req.query;
+
+    let filter = {};
+    if (name) filter.name = new RegExp(name, "i");
+    if (email) filter.email = new RegExp(email, "i");
+    if (address) filter.address = new RegExp(address, "i");
+    if (role) filter.role = role;
+
+    const users=await User.find(filter).sort({
+        [sortBy]: order === "asc" ? 1 : -1 });
+        res.json(users);
+    } 
+    catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+
+
+};
+
+export const listStores = async (req, res) => {
+  try {
+    const { name, email, address, sortBy = "name", order = "asc" } = req.query;
+    let filter = {};
+    if (name) filter.name = new RegExp(name, "i");
+    if (email) filter.email = new RegExp(email, "i");
+    if (address) filter.address = new RegExp(address, "i");
+    const stores = await Store.find(filter).sort({
+      [sortBy]: order === "asc" ? 1 : -1,
+    });
+
+    const storeRatings = await Promise.all(
+      stores.map(async (store) => {
+        const ratings = await Rating.find({ store: store._id });
+        const averageRating =
+          ratings.length > 0
+            ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+            : 0;
+        return { ...store._doc, avgRating: averageRating.toFixed(2) };
+      })
+    );
+    res.json(storeRatings);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
