@@ -21,9 +21,13 @@ mongoose.connect(dbLink)
 
 app.use(express.json());
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: [
+    "http://localhost:3000", // local dev
+    "https://roxiler-systems-frontend-theta.vercel.app" // deployed frontend
+  ],
+  credentials: true,
 }));
+
 app.use(cookieParser());
 
 // Routes
