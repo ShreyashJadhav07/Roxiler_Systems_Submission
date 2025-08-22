@@ -1,6 +1,8 @@
+
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
@@ -10,7 +12,6 @@ const userRouter = require('./Routers/userRouter');
 const ownerRouter = require('./Routers/ownerRouter');
 
 const app = express();
-dotenv.config();
 
 const dbLink = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.jtyx5j9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -29,8 +30,9 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/user", userRouter);
-app.use("/api/owner", ownerRouter); // changed from "/api/post"
+app.use("/api/owner", ownerRouter);
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
+  console.log('JWT_SECRET_KEY loaded:', process.env.JWT_SECRET_KEY ? 'Yes' : 'No');
 });
