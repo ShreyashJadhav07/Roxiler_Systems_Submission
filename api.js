@@ -32,7 +32,8 @@ app.use("/api/admin", adminRouter);
 app.use("/api/user", userRouter);
 app.use("/api/owner", ownerRouter);
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
-  console.log('JWT_SECRET_KEY loaded:', process.env.JWT_SECRET_KEY ? 'Yes' : 'No');
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
