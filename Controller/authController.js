@@ -10,7 +10,11 @@ const { JWT_SECRET_KEY } = process.env;
 
 const signupHandler = async (req, res) => {
   try {
-    const { name, email, address, password } = req.body;
+   
+    const { name, email, address, password, role } = req.body;
+
+  
+    console.log("Signup request data:", { name, email, address, role });
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}$/;
     if (!passwordRegex.test(password)) {
@@ -27,16 +31,25 @@ const signupHandler = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+
     const user = new User({
       name,
       email,
       address,
       password: hashedPassword,
-      role: "user",
+      role: role || "user",
     });
 
+    console.log("Creating user with role:", role); 
+
     await user.save();
-    res.status(201).json({ message: "Signup successful" });
+    
+    console.log("User created successfully with role:", user.role); 
+    
+    res.status(201).json({ 
+      message: "Signup successful", 
+      status: "success" 
+    });
   } catch (error) {
     console.error("Error in signupHandler:", error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -53,7 +66,7 @@ const loginHandler = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    // JWT token
+  
     const authToken = await promisifiedJWTsign(
       { id: user._id, role: user.role },
       JWT_SECRET_KEY
